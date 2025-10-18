@@ -1,4 +1,5 @@
 import os
+import sys
 import atexit
 import inspect
 
@@ -6,6 +7,7 @@ parent = next(inspect.getmodule(f[0]).__file__ for f in inspect.stack()[1:] if n
 
 os.environ["OTEL_TRACES_EXPORTER"] = "console"
 os.environ["OTEL_SERVICE_NAME"] = parent
+os.environ["OTEL_SDK_DISABLED"] = "false"
 from opentelemetry.instrumentation import auto_instrumentation
 auto_instrumentation.initialize()
 # from opentelemetry.sdk.trace import TracerProvider
@@ -25,6 +27,14 @@ context.attach(ctx)
 @atexit.register
 def endSpan():
     span.end()
+
+def handle_exception(exc_type, exc_value, exc_traceback):
+    print("test2")
+    span.record_exception(exc_value)
+    span.set_status(trace.Status(trace.StatusCode.ERROR, str(exc_value)))
+    sys.__excepthook__(exc_type, exc_value, exc_traceback)
+
+sys.excepthook = handle_exception
 
 # from opentelemetry.instrumentation.mysql import MySQLInstrumentor
 

@@ -11,6 +11,11 @@ database="test")
 cur = c.cursor()
 cur.execute("select * from test")
 res = cur.fetchall()
-cur.execute("select * from test")
+try:
+    cur.execute("select asdf from test")
+except:
+    pass
 res = cur.fetchall()
 print(res)
+with open("nonexistent", "r") as f:
+    f.read()
