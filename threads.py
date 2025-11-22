@@ -7,7 +7,7 @@ tracer = trace.get_tracer("my.tracer")
 
 class _thread(threading.Thread):
     def run(self):
-        attach(self._otel_context)
+        if hasattr(self, '_otel_context'): attach(self._otel_context)
         with tracer.start_as_current_span("run"):
             c = mysql.connector.connect(
                 host="127.0.0.1",
