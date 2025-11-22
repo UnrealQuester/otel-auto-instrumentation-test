@@ -2,6 +2,7 @@ import os
 import sys
 import atexit
 import inspect
+import threading
 
 parent = next(inspect.getmodule(f[0]).__file__ for f in inspect.stack()[1:] if not f.filename.startswith('<'))
 
@@ -29,12 +30,17 @@ def endSpan():
     span.end()
 
 def handle_exception(exc_type, exc_value, exc_traceback):
-    print("test2")
     span.record_exception(exc_value)
     span.set_status(trace.Status(trace.StatusCode.ERROR, str(exc_value)))
     sys.__excepthook__(exc_type, exc_value, exc_traceback)
 
+def handle_threading_exception(args: threading.ExceptHookArgs):
+    trace.get_current_span().record_exception(args.exc_value)
+    trace.get_current_span().set_status(trace.Status(trace.StatusCode.ERROR, str(args.exc_value)))
+    threading.__excepthook__(args)
+
 sys.excepthook = handle_exception
+threading.excepthook = handle_threading_exception
 
 # from opentelemetry.instrumentation.mysql import MySQLInstrumentor
 
